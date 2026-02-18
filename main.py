@@ -1,13 +1,10 @@
 from flask import Flask, request
 import telebot
 import os
-import random
 
 TOKEN = os.environ.get("TOKEN")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
-
-# ---------- MOTORE ANALISI ----------
 
 def seo_score(keyword):
     score = 40
@@ -29,59 +26,52 @@ def market_profile(score, words):
         return "Nicchia Intermedia"
     return "Mercato Ampio Competitivo"
 
-# ---------- GENERATORE TITOLI STRATEGICI ----------
-
-power_angles = [
-    "Guida Tecnica Completa",
-    "Manuale Pratico",
-    "Metodo Definitivo",
-    "Approccio Professionale",
-    "Sistema Step-by-Step"
-]
-
-promises = [
-    "Senza Errori Costosi",
-    "Con Budget Ridotto",
-    "Anche se Parti da Zero",
-    "Dalla A alla Z",
-    "Con Risultati Concreti"
-]
-
-def generate_strategic_titles(keyword):
+def generate_structured_titles(keyword):
     base = keyword.title()
+
     titles = []
 
-    for _ in range(5):
-        angle = random.choice(power_angles)
-        promise = random.choice(promises)
-        titles.append(f"📘 {base} – {angle}: {promise}")
+    # 1. Autorità Tecnica
+    titles.append(
+        f"📘 {base} – Manuale Tecnico Completo per Restauratori Fai-da-Te"
+    )
+
+    # 2. Metodo Proprietario
+    titles.append(
+        f"📘 {base} – Il Metodo Garage 60 Giorni per un Ripristino Professionale"
+    )
+
+    # 3. Target Specifico
+    titles.append(
+        f"📘 {base} per Principianti Assoluti – Guida Passo Dopo Passo Senza Errori"
+    )
+
+    # 4. Problema/Budget
+    titles.append(
+        f"📘 {base} – Restauro con Budget Ridotto Senza Compromettere la Qualità"
+    )
+
+    # 5. Trasformazione Finale
+    titles.append(
+        f"📘 {base} – Da Auto Ferma a Gioiello Restaurato: Tecniche e Strategie"
+    )
 
     return titles
-
-# ---------- SIMULAZIONE TITOLI AMAZON ----------
-
-amazon_patterns = [
-    "Guida Completa",
-    "Manuale Illustrato",
-    "Edizione Aggiornata 2024",
-    "Versione Estesa",
-    "Guida per Principianti"
-]
 
 def generate_amazon_style_titles(keyword):
     base = keyword.title()
-    titles = []
 
-    for pattern in amazon_patterns:
-        titles.append(f"🛒 {base} – {pattern}")
-
-    return titles
-
-# ---------- FLASK ROUTING ----------
+    return [
+        f"🛒 {base} – Guida Completa",
+        f"🛒 {base} – Manuale Illustrato",
+        f"🛒 {base} – Edizione Aggiornata",
+        f"🛒 {base} – Versione Estesa",
+        f"🛒 {base} – Guida per Principianti"
+    ]
 
 @app.route('/')
 def home():
-    return "KDP Strategist V6 Online"
+    return "KDP Strategist V7 Online"
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -90,17 +80,13 @@ def webhook():
     bot.process_new_updates([update])
     return 'ok', 200
 
-# ---------- COMANDO START ----------
-
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.reply_to(message,
-        "🚀 KDP STRATEGIST V6\n\n"
+        "🚀 KDP STRATEGIST V7\n\n"
         "Scrivi:\n"
         "/analyze tua keyword"
     )
-
-# ---------- COMANDO ANALYZE ----------
 
 @bot.message_handler(commands=['analyze'])
 def analyze(message):
@@ -114,7 +100,7 @@ def analyze(message):
     words = len(kw.split())
     profile = market_profile(score, words)
 
-    strategic_titles = generate_strategic_titles(kw)
+    strategic_titles = generate_structured_titles(kw)
     amazon_titles = generate_amazon_style_titles(kw)
 
     response = f"""
@@ -124,15 +110,19 @@ def analyze(message):
 📊 SEO Score: {score}/100
 🎯 Profilo Mercato: {profile}
 
-🏆 5 TITOLI STRATEGICI DIFFERENZIANTI:
+🏆 5 TITOLI STRUTTURATI DIFFERENZIATI:
 
 {strategic_titles[0]}
+
 {strategic_titles[1]}
+
 {strategic_titles[2]}
+
 {strategic_titles[3]}
+
 {strategic_titles[4]}
 
-🛒 TITOLI IN STILE AMAZON (attualmente comuni sul mercato):
+🛒 TITOLI IN STILE AMAZON:
 
 {amazon_titles[0]}
 {amazon_titles[1]}
@@ -142,8 +132,6 @@ def analyze(message):
 """
 
     bot.reply_to(message, response)
-
-# ---------- AVVIO ----------
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
