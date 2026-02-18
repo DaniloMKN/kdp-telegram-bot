@@ -60,11 +60,54 @@ def decision_logic(score, saturation):
         return "CAUTION"
     return "NO"
 
+# ---------- GENERATORE TITOLI ----------
+
+methods = ["Metodo Garage 60 Giorni", "Sistema Ripristino Professionale", "Strategia Restauro Essenziale"]
+benefits = ["Senza Errori Costosi", "Con Budget Controllato", "Passo Dopo Passo", "Dalla A alla Z"]
+targets = ["per Principianti Assoluti", "per Appassionati Fai-da-Te", "per Restauratori Indipendenti"]
+transformations = [
+    "Da Auto Ferma a Modello Restaurato Perfetto",
+    "Dal Garage alla Strada in Perfette Condizioni",
+    "Dal Progetto al Ripristino Professionale"
+]
+
+def generate_combos(keyword):
+    base = keyword.title()
+
+    combos = []
+
+    combos.append({
+        "title": f"{base} – {random.choice(methods)}",
+        "subtitle": f"Guida Completa {random.choice(benefits)} per un Ripristino Affidabile"
+    })
+
+    combos.append({
+        "title": f"{base} {random.choice(targets)}",
+        "subtitle": f"Manuale Pratico {random.choice(benefits)} per Restaurare in Autonomia"
+    })
+
+    combos.append({
+        "title": f"{base} – Restauro con Budget Ridotto",
+        "subtitle": f"Tecniche Concrete {random.choice(benefits)} Senza Compromettere la Qualità"
+    })
+
+    combos.append({
+        "title": f"{base} – {random.choice(transformations)}",
+        "subtitle": "Strategie Tecniche Operative per un Risultato Professionale"
+    })
+
+    combos.append({
+        "title": f"{base} – Manuale Tecnico Completo",
+        "subtitle": f"Procedure, Errori Comuni e Soluzioni Pratiche {random.choice(benefits)}"
+    })
+
+    return combos
+
 # ---------- FLASK ----------
 
 @app.route('/')
 def home():
-    return "KDP Ecosystem with Export Online"
+    return "KDP Ecosystem FULL Online"
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -77,11 +120,35 @@ def webhook():
 def start(message):
     bot.reply_to(
         message,
-        "🚀 KDP ECOSYSTEM\n\n"
-        "/analyze keyword\n"
-        "/business keyword\n"
-        "/export (poi scrivi keyword una per riga)"
+        "🚀 KDP ECOSYSTEM FULL\n\n"
+        "/analyze keyword → Titoli completi\n"
+        "/business keyword → Simulazione profitto\n"
+        "/export + keyword per riga → File Excel"
     )
+
+# ---------- ANALYZE ----------
+
+@bot.message_handler(commands=['analyze'])
+def analyze(message):
+    kw = message.text.replace("/analyze", "").strip()
+
+    if not kw:
+        bot.reply_to(message, "Inserisci una keyword dopo /analyze")
+        return
+
+    score = seo_score(kw)
+    combos = generate_combos(kw)
+
+    response = f"🧠 ANALISI EDITORIALE\n\n"
+    response += f"📌 Keyword: {kw}\n"
+    response += f"📊 SEO Score: {score}/100\n\n"
+
+    for i, combo in enumerate(combos, start=1):
+        response += f"🔹 PROPOSTA {i}\n"
+        response += f"📘 {combo['title']}\n"
+        response += f"📝 {combo['subtitle']}\n\n"
+
+    bot.reply_to(message, response)
 
 # ---------- BUSINESS ----------
 
@@ -120,12 +187,12 @@ Decisione: {decision}
 """
     bot.reply_to(message, response)
 
-# ---------- EXPORT EXCEL ----------
+# ---------- EXPORT ----------
 
 @bot.message_handler(commands=['export'])
 def export_keywords(message):
 
-    lines = message.text.split("\n")[1:] # Salta /export
+    lines = message.text.split("\n")[1:]
 
     if not lines:
         bot.reply_to(message, "Dopo /export scrivi una keyword per riga.")
@@ -135,18 +202,11 @@ def export_keywords(message):
     ws = wb.active
     ws.title = "KDP Analysis"
 
-    headers = [
-        "Keyword",
-        "SEO Score",
-        "Domanda",
-        "Saturazione",
-        "Prezzo",
-        "Copie Stimate",
-        "Profitto Stimato",
-        "Decisione"
-    ]
-
-    ws.append(headers)
+    ws.append([
+        "Keyword", "SEO Score", "Domanda",
+        "Saturazione", "Prezzo",
+        "Copie Stimate", "Profitto Stimato", "Decisione"
+    ])
 
     for kw in lines:
         kw = kw.strip()
@@ -164,14 +224,9 @@ def export_keywords(message):
         decision = decision_logic(score, saturation)
 
         ws.append([
-            kw,
-            score,
-            demand,
-            saturation,
-            price,
-            monthly_sales,
-            monthly_profit,
-            decision
+            kw, score, demand,
+            saturation, price,
+            monthly_sales, monthly_profit, decision
         ])
 
     file_stream = BytesIO()
@@ -183,8 +238,6 @@ def export_keywords(message):
         file_stream,
         visible_file_name="kdp_keyword_analysis.xlsx"
     )
-
-# ---------- RUN ----------
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
