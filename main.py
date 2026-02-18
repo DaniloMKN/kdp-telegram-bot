@@ -1,10 +1,13 @@
 from flask import Flask, request
 import telebot
 import os
+import random
 
 TOKEN = os.environ.get("TOKEN")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
+
+# -------- ANALISI BASE --------
 
 def seo_score(keyword):
     score = 40
@@ -14,64 +17,79 @@ def seo_score(keyword):
         score += 20
     if any(char.isdigit() for char in keyword):
         score += 15
-    if "guida" in keyword.lower():
-        score += 10
 
     return min(score, 100)
 
-def market_profile(score, words):
-    if score >= 75 and words >= 4:
-        return "Micro-Nicchia Verticale"
-    if score >= 60:
-        return "Nicchia Intermedia"
-    return "Mercato Ampio Competitivo"
+# -------- STRUTTURE --------
 
-def generate_structured_titles(keyword):
+methods = ["Metodo Garage 60 Giorni", "Sistema Ripristino Professionale", "Strategia Restauro Essenziale"]
+targets = ["per Principianti Assoluti", "per Appassionati Fai-da-Te", "per Restauratori Indipendenti"]
+benefits = ["Senza Errori Costosi", "Con Budget Controllato", "Passo Dopo Passo", "Dalla A alla Z"]
+
+transformations = [
+    "Da Auto Ferma a Modello Restaurato Perfetto",
+    "Dal Garage alla Strada in Perfette Condizioni",
+    "Dal Progetto al Ripristino Professionale"
+]
+
+# -------- GENERAZIONE COMBO --------
+
+def generate_combos(keyword):
     base = keyword.title()
+    combos = []
 
-    titles = []
+    # 1 Metodo + Beneficio
+    combos.append({
+        "title": f"{base} – {random.choice(methods)}",
+        "subtitle": f"Guida Completa {random.choice(benefits)} per un Ripristino Affidabile",
+        "angle": "Metodo Proprietario",
+        "target": "Appassionati tecnici",
+        "psychology": "Sicurezza e controllo"
+    })
 
-    # 1. Autorità Tecnica
-    titles.append(
-        f"📘 {base} – Manuale Tecnico Completo per Restauratori Fai-da-Te"
-    )
+    # 2 Target specifico
+    combos.append({
+        "title": f"{base} {random.choice(targets)}",
+        "subtitle": f"Manuale Pratico {random.choice(benefits)} per Restaurare in Autonomia",
+        "angle": "Accessibilità",
+        "target": "Principianti",
+        "psychology": "Riduzione paura"
+    })
 
-    # 2. Metodo Proprietario
-    titles.append(
-        f"📘 {base} – Il Metodo Garage 60 Giorni per un Ripristino Professionale"
-    )
+    # 3 Budget
+    combos.append({
+        "title": f"{base} – Restauro con Budget Ridotto",
+        "subtitle": f"Tecniche Concrete {random.choice(benefits)} Senza Compromettere la Qualità",
+        "angle": "Risparmio intelligente",
+        "target": "Hobbisti attenti ai costi",
+        "psychology": "Evitare sprechi"
+    })
 
-    # 3. Target Specifico
-    titles.append(
-        f"📘 {base} per Principianti Assoluti – Guida Passo Dopo Passo Senza Errori"
-    )
+    # 4 Trasformazione
+    combos.append({
+        "title": f"{base} – {random.choice(transformations)}",
+        "subtitle": f"Strategie Tecniche e Operative per un Risultato Professionale",
+        "angle": "Trasformazione visibile",
+        "target": "Motivati al risultato",
+        "psychology": "Visione finale"
+    })
 
-    # 4. Problema/Budget
-    titles.append(
-        f"📘 {base} – Restauro con Budget Ridotto Senza Compromettere la Qualità"
-    )
+    # 5 Autorità Tecnica
+    combos.append({
+        "title": f"{base} – Manuale Tecnico Completo",
+        "subtitle": f"Procedure, Errori Comuni e Soluzioni Pratiche {random.choice(benefits)}",
+        "angle": "Autorità professionale",
+        "target": "Esperti e semi-esperti",
+        "psychology": "Competenza"
+    })
 
-    # 5. Trasformazione Finale
-    titles.append(
-        f"📘 {base} – Da Auto Ferma a Gioiello Restaurato: Tecniche e Strategie"
-    )
+    return combos
 
-    return titles
-
-def generate_amazon_style_titles(keyword):
-    base = keyword.title()
-
-    return [
-        f"🛒 {base} – Guida Completa",
-        f"🛒 {base} – Manuale Illustrato",
-        f"🛒 {base} – Edizione Aggiornata",
-        f"🛒 {base} – Versione Estesa",
-        f"🛒 {base} – Guida per Principianti"
-    ]
+# -------- ROUTING --------
 
 @app.route('/')
 def home():
-    return "KDP Strategist V7 Online"
+    return "KDP Strategist V8 Online"
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -83,7 +101,7 @@ def webhook():
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.reply_to(message,
-        "🚀 KDP STRATEGIST V7\n\n"
+        "🚀 KDP STRATEGIST V8\n\n"
         "Scrivi:\n"
         "/analyze tua keyword"
     )
@@ -97,39 +115,21 @@ def analyze(message):
         return
 
     score = seo_score(kw)
-    words = len(kw.split())
-    profile = market_profile(score, words)
+    combos = generate_combos(kw)
 
-    strategic_titles = generate_structured_titles(kw)
-    amazon_titles = generate_amazon_style_titles(kw)
+    response = f"🧠 ANALISI + COMBINAZIONI COMPLETE\n\n"
+    response += f"📌 Keyword: {kw}\n"
+    response += f"📊 SEO Score: {score}/100\n\n"
+    response += "🏆 5 PROPOSTE COMPLETE:\n\n"
 
-    response = f"""
-🧠 ANALISI STRATEGICA
-
-📌 Keyword: {kw}
-📊 SEO Score: {score}/100
-🎯 Profilo Mercato: {profile}
-
-🏆 5 TITOLI STRUTTURATI DIFFERENZIATI:
-
-{strategic_titles[0]}
-
-{strategic_titles[1]}
-
-{strategic_titles[2]}
-
-{strategic_titles[3]}
-
-{strategic_titles[4]}
-
-🛒 TITOLI IN STILE AMAZON:
-
-{amazon_titles[0]}
-{amazon_titles[1]}
-{amazon_titles[2]}
-{amazon_titles[3]}
-{amazon_titles[4]}
-"""
+    for i, combo in enumerate(combos, start=1):
+        response += f"🔹 PROPOSTA {i}\n"
+        response += f"📘 Titolo:\n{combo['title']}\n\n"
+        response += f"📝 Sottotitolo:\n{combo['subtitle']}\n\n"
+        response += f"🎯 Posizionamento:\n{combo['angle']}\n"
+        response += f"👥 Target:\n{combo['target']}\n"
+        response += f"🧠 Leva Psicologica:\n{combo['psychology']}\n\n"
+        response += "-----------------------------\n\n"
 
     bot.reply_to(message, response)
 
