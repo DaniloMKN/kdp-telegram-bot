@@ -10,49 +10,52 @@ app = Flask(__name__)
 
 power_words = [
     "Completo", "Definitivo", "Pratico", "Avanzato",
-    "Strategico", "Semplice", "Professionale",
-    "Illustrato", "Passo dopo Passo", "Aggiornato"
+    "Strategico", "Professionale", "Illustrato",
+    "Passo dopo Passo", "Aggiornato", "Intensivo"
 ]
 
-promises = [
-    "Anche se Parti da Zero",
-    "Senza Sprecare Tempo",
-    "Con Budget Ridotto",
-    "Senza Errori Costosi",
-    "Metodo Testato",
-    "Guida per Principianti",
-    "Dalla A alla Z"
+time_frames = ["in 30 Giorni", "in 60 Giorni", "in 7 Step", "Senza Sprecare 12 Mesi"]
+
+mechanisms = [
+    "Metodo da Garage",
+    "Sistema Progressivo",
+    "Strategia Budget Zero",
+    "Tecnica Restauro Essenziale",
+    "Approccio Meccanico Guidato"
 ]
 
-psychology_hooks = [
-    "Scopri il Metodo",
-    "Impara le Tecniche",
-    "Evita gli Errori",
-    "Ottieni Risultati",
-    "Trasforma la Tua Passione",
-    "Raggiungi un Livello Superiore"
-]
+def seo_score(keyword):
+    score = 40
+    words = len(keyword.split())
 
-def detect_intent(keyword):
+    if words >= 4:
+        score += 20
+    elif words == 3:
+        score += 10
+
+    if any(char.isdigit() for char in keyword):
+        score += 15
+
+    if "guida" in keyword.lower():
+        score += 10
+
+    if "per" in keyword.lower():
+        score += 5
+
+    return min(score, 100)
+
+def keyword_type(keyword):
     if "come" in keyword.lower():
         return "Informazionale"
     if any(char.isdigit() for char in keyword):
         return "Nicchia Specifica"
     if len(keyword.split()) >= 4:
         return "Long Tail Mirata"
-    return "Generica / Competitiva"
-
-def difficulty_estimation(keyword):
-    words = len(keyword.split())
-    if words >= 4:
-        return "Bassa"
-    if words == 3:
-        return "Media"
-    return "Alta"
+    return "Generica Competitiva"
 
 @app.route('/')
 def home():
-    return "KDP Bot Online"
+    return "KDP PRO Bot Online"
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -63,54 +66,73 @@ def webhook():
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, "🚀 KDP Intelligence Bot Attivo\n\n/keyword parola\n/titolo argomento")
+    bot.reply_to(message,
+        "🚀 KDP PRO ENGINE ATTIVO\n\n"
+        "/keyword parola\n"
+        "/titolo argomento"
+    )
 
 @bot.message_handler(commands=['keyword'])
 def keyword(message):
-    keyword = message.text.replace("/keyword", "").strip()
-    if not keyword:
+    kw = message.text.replace("/keyword", "").strip()
+
+    if not kw:
         bot.reply_to(message, "Inserisci una keyword.")
         return
 
-    intent = detect_intent(keyword)
-    difficulty = difficulty_estimation(keyword)
+    score = seo_score(kw)
+    ktype = keyword_type(kw)
 
     angles = [
-        "Guida per principianti",
-        "Metodo con budget ridotto",
-        "Approccio passo passo",
-        "Strategia professionale",
-        "Versione aggiornata"
+        "Versione Budget Ridotto",
+        "Guida per Principianti Assoluti",
+        "Approccio Professionale",
+        "Metodo Ultra Specifico Modello/Anno",
+        "Restauro Fai-da-Te Domestico"
     ]
 
     response = f"""
-🔎 ANALISI KEYWORD
+🔎 ANALISI STRATEGICA KDP
 
-📌 Keyword: {keyword}
-🎯 Intento: {intent}
-📉 Competitività Stimata: {difficulty}
+📌 Keyword: {kw}
+🎯 Tipo: {ktype}
+📊 SEO Score: {score}/100
 
-💡 Angoli di Mercato:
-- {random.choice(angles)}
-- {random.choice(angles)}
-- {random.choice(angles)}
+🎯 Angolo Consigliato:
+{random.choice(angles)}
+
+💡 Long Tail Strategiche:
+- {kw} guida pratica completa
+- come {kw} senza errori
+- {kw} per principianti passo dopo passo
 """
+
     bot.reply_to(message, response)
 
 @bot.message_handler(commands=['titolo'])
 def titolo(message):
     topic = message.text.replace("/titolo", "").strip()
+
     if not topic:
         bot.reply_to(message, "Inserisci un argomento.")
         return
 
-    results = []
-    for _ in range(3):
+    normal_titles = []
+    for _ in range(2):
         title = f"{topic.title()} - {random.choice(power_words)}"
-        subtitle = f"{random.choice(psychology_hooks)} {random.choice(promises)}"
-        results.append(f"📘 {title}\n {subtitle}")
+        subtitle = f"{random.choice(mechanisms)} {random.choice(time_frames)}"
+        normal_titles.append(f"📘 {title}\n {subtitle}")
 
-    response = "🏆 IDEE TITOLO & SOTTOTITOLO\n\n" + "\n\n".join(results)
+    aggressive = f"🔥 {topic.title()} – {random.choice(mechanisms)} {random.choice(time_frames)} Anche se Parti da Zero"
+
+    ultra_niche = f"🎯 {topic.title()} per Principianti Assoluti – Manuale Pratico da Garage con Budget Ridotto"
+
+    response = "🏆 KDP PRO TITOLI\n\n"
+    response += "\n\n".join(normal_titles)
+    response += "\n\n"
+    response += aggressive
+    response += "\n\n"
+    response += ultra_niche
 
     bot.reply_to(message, response)
 
