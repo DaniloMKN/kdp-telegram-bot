@@ -7,15 +7,19 @@ TOKEN = os.environ.get("TOKEN")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
+# ---------- MOTORE ANALISI ----------
+
 def seo_score(keyword):
     score = 40
     words = len(keyword.split())
+
     if words >= 4:
         score += 20
     if any(char.isdigit() for char in keyword):
         score += 15
     if "guida" in keyword.lower():
         score += 10
+
     return min(score, 100)
 
 def market_profile(score, words):
@@ -25,42 +29,59 @@ def market_profile(score, words):
         return "Nicchia Intermedia"
     return "Mercato Ampio Competitivo"
 
-def positioning_strategy(profile):
-    if "Micro" in profile:
-        return "Dominio specifico + Autorità tecnica"
-    if "Intermedia" in profile:
-        return "Differenziazione forte + Metodo proprietario"
-    return "Brand personale + Volume alto"
+# ---------- GENERATORE TITOLI STRATEGICI ----------
 
-def authority_level(profile):
-    if "Micro" in profile:
-        return "Media/Alta (esperienza reale consigliata)"
-    if "Intermedia" in profile:
-        return "Media"
-    return "Base / divulgativo"
+power_angles = [
+    "Guida Tecnica Completa",
+    "Manuale Pratico",
+    "Metodo Definitivo",
+    "Approccio Professionale",
+    "Sistema Step-by-Step"
+]
 
-def cover_type(profile):
-    if "Micro" in profile:
-        return "Copertina tecnica, concreta, professionale"
-    return "Copertina emozionale / promessa forte"
+promises = [
+    "Senza Errori Costosi",
+    "Con Budget Ridotto",
+    "Anche se Parti da Zero",
+    "Dalla A alla Z",
+    "Con Risultati Concreti"
+]
 
-def funnel_strategy(profile):
-    if "Micro" in profile:
-        return "Checklist + Gruppo Telegram + Versione avanzata"
-    if "Intermedia" in profile:
-        return "Mini ebook bonus + Newsletter"
-    return "Lead magnet generico"
+def generate_strategic_titles(keyword):
+    base = keyword.title()
+    titles = []
 
-def operational_risk(words):
-    if words >= 4:
-        return "Basso rischio (target chiaro)"
-    if words == 3:
-        return "Rischio medio"
-    return "Alto rischio saturazione"
+    for _ in range(5):
+        angle = random.choice(power_angles)
+        promise = random.choice(promises)
+        titles.append(f"📘 {base} – {angle}: {promise}")
+
+    return titles
+
+# ---------- SIMULAZIONE TITOLI AMAZON ----------
+
+amazon_patterns = [
+    "Guida Completa",
+    "Manuale Illustrato",
+    "Edizione Aggiornata 2024",
+    "Versione Estesa",
+    "Guida per Principianti"
+]
+
+def generate_amazon_style_titles(keyword):
+    base = keyword.title()
+    titles = []
+
+    for pattern in amazon_patterns:
+        titles.append(f"🛒 {base} – {pattern}")
+
+    return titles
+
+# ---------- FLASK ROUTING ----------
 
 @app.route('/')
 def home():
-    return "KDP Intelligent Strategist Online"
+    return "KDP Strategist V6 Online"
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -69,13 +90,17 @@ def webhook():
     bot.process_new_updates([update])
     return 'ok', 200
 
+# ---------- COMANDO START ----------
+
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.reply_to(message,
-        "🚀 KDP INTELLIGENT STRATEGIST\n\n"
+        "🚀 KDP STRATEGIST V6\n\n"
         "Scrivi:\n"
         "/analyze tua keyword"
     )
+
+# ---------- COMANDO ANALYZE ----------
 
 @bot.message_handler(commands=['analyze'])
 def analyze(message):
@@ -88,43 +113,37 @@ def analyze(message):
     score = seo_score(kw)
     words = len(kw.split())
     profile = market_profile(score, words)
-    positioning = positioning_strategy(profile)
-    authority = authority_level(profile)
-    cover = cover_type(profile)
-    funnel = funnel_strategy(profile)
-    risk = operational_risk(words)
+
+    strategic_titles = generate_strategic_titles(kw)
+    amazon_titles = generate_amazon_style_titles(kw)
 
     response = f"""
-🧠 ANALISI STRATEGICA AVANZATA
+🧠 ANALISI STRATEGICA
 
 📌 Keyword: {kw}
 📊 SEO Score: {score}/100
 🎯 Profilo Mercato: {profile}
 
-🚀 Posizionamento Consigliato:
-{positioning}
+🏆 5 TITOLI STRATEGICI DIFFERENZIANTI:
 
-🎓 Livello Autorità Necessario:
-{authority}
+{strategic_titles[0]}
+{strategic_titles[1]}
+{strategic_titles[2]}
+{strategic_titles[3]}
+{strategic_titles[4]}
 
-🎨 Tipo Copertina:
-{cover}
+🛒 TITOLI IN STILE AMAZON (attualmente comuni sul mercato):
 
-📦 Strategia Funnel:
-{funnel}
-
-⚠️ Rischio Operativo:
-{risk}
-
-📚 Espansione Consigliata:
-1. Libro Base
-2. Versione Specializzata
-3. Workbook operativo
-4. Edizione Illustrata
-5. Upsell avanzato
+{amazon_titles[0]}
+{amazon_titles[1]}
+{amazon_titles[2]}
+{amazon_titles[3]}
+{amazon_titles[4]}
 """
 
     bot.reply_to(message, response)
+
+# ---------- AVVIO ----------
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
