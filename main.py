@@ -7,14 +7,6 @@ TOKEN = os.environ.get("TOKEN")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-power_words = ["Completo", "Definitivo", "Pratico", "Avanzato", "Strategico", "Illustrato"]
-categories = {
-    "auto": "Ingegneria Meccanica / Restauro Auto",
-    "orto": "Giardinaggio / Coltivazione Domestica",
-    "vino": "Enologia / Turismo Enogastronomico",
-    "mente": "Crescita Personale / Psicologia Applicata"
-}
-
 def seo_score(keyword):
     score = 40
     words = len(keyword.split())
@@ -30,36 +22,51 @@ def seo_score(keyword):
 
 def demand_indicator(score):
     if score >= 75:
-        return "Domanda Alta ma Nicchia Specifica"
+        return "Alta (Verticale Specifica)"
     if score >= 60:
-        return "Domanda Media Interessante"
-    return "Domanda Generica Competitiva"
+        return "Media Interessante"
+    return "Generica Competitiva"
 
 def search_intent(keyword):
     kw = keyword.lower()
     if "come" in kw or "guida" in kw:
-        return "Tutorial / Problema da Risolvere"
+        return "Tutorial / Problema"
     if any(char.isdigit() for char in kw):
-        return "Passione / Progetto Specifico"
-    return "Commerciale / Generico"
+        return "Passione Specifica"
+    return "Commerciale Generico"
 
 def market_saturation(keyword):
     words = len(keyword.split())
     if words >= 4:
-        return "Bassa Saturazione (opportunità)"
+        return "Bassa (Opportunità)"
     if words == 3:
-        return "Media Saturazione"
-    return "Alta Saturazione (molta concorrenza)"
+        return "Media"
+    return "Alta"
 
-def suggest_category(keyword):
-    for key in categories:
-        if key in keyword.lower():
-            return categories[key]
-    return "Categoria Generale Fai-da-Te / Manualistica"
+def commercial_value(score, saturation):
+    if score >= 75 and "Bassa" in saturation:
+        return "Ottimo potenziale Micro-Nicchia"
+    if score >= 60:
+        return "Buon potenziale ma competitivo"
+    return "Serve differenziazione forte"
+
+def price_suggestion(score):
+    if score >= 75:
+        return "Prezzo consigliato: 14.99€ - 19.99€"
+    if score >= 60:
+        return "Prezzo consigliato: 12.99€ - 14.99€"
+    return "Prezzo consigliato: 9.99€ - 12.99€"
+
+def pages_suggestion(score):
+    if score >= 75:
+        return "Lunghezza consigliata: 120-180 pagine"
+    if score >= 60:
+        return "Lunghezza consigliata: 90-130 pagine"
+    return "Lunghezza consigliata: 70-100 pagine"
 
 @app.route('/')
 def home():
-    return "KDP Strategic Lab Online"
+    return "KDP RADAR Online"
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -71,65 +78,56 @@ def webhook():
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.reply_to(message,
-        "🚀 KDP STRATEGIC LAB ATTIVO\n\n"
-        "/keyword parola\n"
-        "/titolo argomento\n"
-        "/idea argomento"
+        "🚀 KDP RADAR COMPLETO ATTIVO\n\n"
+        "Scrivi semplicemente una keyword dopo /radar\n"
+        "Esempio:\n"
+        "/radar restauro fiat uno 1990"
     )
 
-@bot.message_handler(commands=['keyword'])
-def keyword(message):
-    kw = message.text.replace("/keyword", "").strip()
+@bot.message_handler(commands=['radar'])
+def radar(message):
+    kw = message.text.replace("/radar", "").strip()
     if not kw:
-        bot.reply_to(message, "Inserisci una keyword.")
+        bot.reply_to(message, "Inserisci una keyword dopo /radar")
         return
 
     score = seo_score(kw)
     demand = demand_indicator(score)
     intent = search_intent(kw)
     saturation = market_saturation(kw)
-    category = suggest_category(kw)
+    commercial = commercial_value(score, saturation)
+    price = price_suggestion(score)
+    pages = pages_suggestion(score)
+
+    collection_strategy = f"""
+📚 Strategia Collana:
+
+1. Libro Base: {kw.title()} – Guida Completa
+2. Versione Budget / Principianti
+3. Versione Avanzata Tecnica
+4. Manuale Illustrato
+5. Workbook / Checklist Operativa
+"""
 
     response = f"""
-🔎 ANALISI STRATEGICA AVANZATA
+🔎 KDP RADAR ANALYSIS
 
 📌 Keyword: {kw}
 📊 SEO Score: {score}/100
-📈 Domanda Stimata: {demand}
-🧠 Intento Ricerca: {intent}
-📉 Saturazione Mercato: {saturation}
-🎯 Categoria KDP Suggerita:
-{category}
+📈 Domanda: {demand}
+🧠 Intento: {intent}
+📉 Saturazione: {saturation}
+
+💰 Valore Commerciale:
+{commercial}
+
+🏷 {price}
+📖 {pages}
+
+{collection_strategy}
 """
 
     bot.reply_to(message, response)
-
-@bot.message_handler(commands=['idea'])
-def idea(message):
-    topic = message.text.replace("/idea", "").strip()
-    if not topic:
-        bot.reply_to(message, "Inserisci un argomento.")
-        return
-
-    structure = f"""
-🛠 IDEA LIBRO COMPLETA
-
-📘 Titolo:
-{topic.title()} – Guida Pratica per Principianti
-
-📚 Struttura Capitoli:
-1. Introduzione e errori comuni
-2. Strumenti necessari
-3. Metodo passo dopo passo
-4. Problemi frequenti e soluzioni
-5. Tecniche avanzate
-6. Manutenzione e ottimizzazione
-
-🎯 Target:
-Appassionati e principianti che vogliono risultati pratici.
-"""
-
-    bot.reply_to(message, structure)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
