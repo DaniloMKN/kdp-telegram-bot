@@ -2,27 +2,18 @@ from flask import Flask, request
 import telebot
 import os
 import random
-import re
 
 TOKEN = os.environ.get("TOKEN")
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-power_words = [
-    "Completo", "Definitivo", "Pratico", "Avanzato",
-    "Strategico", "Professionale", "Illustrato",
-    "Passo dopo Passo", "Aggiornato", "Intensivo"
-]
-
-time_frames = ["in 30 Giorni", "in 60 Giorni", "in 7 Step", "Senza Sprecare 12 Mesi"]
-
-mechanisms = [
-    "Metodo da Garage",
-    "Sistema Progressivo",
-    "Strategia Budget Zero",
-    "Tecnica Restauro Essenziale",
-    "Approccio Meccanico Guidato"
-]
+power_words = ["Completo", "Definitivo", "Pratico", "Avanzato", "Strategico", "Illustrato"]
+categories = {
+    "auto": "Ingegneria Meccanica / Restauro Auto",
+    "orto": "Giardinaggio / Coltivazione Domestica",
+    "vino": "Enologia / Turismo Enogastronomico",
+    "mente": "Crescita Personale / Psicologia Applicata"
+}
 
 def seo_score(keyword):
     score = 40
@@ -30,32 +21,45 @@ def seo_score(keyword):
 
     if words >= 4:
         score += 20
-    elif words == 3:
-        score += 10
-
     if any(char.isdigit() for char in keyword):
         score += 15
-
     if "guida" in keyword.lower():
         score += 10
 
-    if "per" in keyword.lower():
-        score += 5
-
     return min(score, 100)
 
-def keyword_type(keyword):
-    if "come" in keyword.lower():
-        return "Informazionale"
-    if any(char.isdigit() for char in keyword):
-        return "Nicchia Specifica"
-    if len(keyword.split()) >= 4:
-        return "Long Tail Mirata"
-    return "Generica Competitiva"
+def demand_indicator(score):
+    if score >= 75:
+        return "Domanda Alta ma Nicchia Specifica"
+    if score >= 60:
+        return "Domanda Media Interessante"
+    return "Domanda Generica Competitiva"
+
+def search_intent(keyword):
+    kw = keyword.lower()
+    if "come" in kw or "guida" in kw:
+        return "Tutorial / Problema da Risolvere"
+    if any(char.isdigit() for char in kw):
+        return "Passione / Progetto Specifico"
+    return "Commerciale / Generico"
+
+def market_saturation(keyword):
+    words = len(keyword.split())
+    if words >= 4:
+        return "Bassa Saturazione (opportunità)"
+    if words == 3:
+        return "Media Saturazione"
+    return "Alta Saturazione (molta concorrenza)"
+
+def suggest_category(keyword):
+    for key in categories:
+        if key in keyword.lower():
+            return categories[key]
+    return "Categoria Generale Fai-da-Te / Manualistica"
 
 @app.route('/')
 def home():
-    return "KDP PRO Bot Online"
+    return "KDP Strategic Lab Online"
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -67,74 +71,65 @@ def webhook():
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.reply_to(message,
-        "🚀 KDP PRO ENGINE ATTIVO\n\n"
+        "🚀 KDP STRATEGIC LAB ATTIVO\n\n"
         "/keyword parola\n"
-        "/titolo argomento"
+        "/titolo argomento\n"
+        "/idea argomento"
     )
 
 @bot.message_handler(commands=['keyword'])
 def keyword(message):
     kw = message.text.replace("/keyword", "").strip()
-
     if not kw:
         bot.reply_to(message, "Inserisci una keyword.")
         return
 
     score = seo_score(kw)
-    ktype = keyword_type(kw)
-
-    angles = [
-        "Versione Budget Ridotto",
-        "Guida per Principianti Assoluti",
-        "Approccio Professionale",
-        "Metodo Ultra Specifico Modello/Anno",
-        "Restauro Fai-da-Te Domestico"
-    ]
+    demand = demand_indicator(score)
+    intent = search_intent(kw)
+    saturation = market_saturation(kw)
+    category = suggest_category(kw)
 
     response = f"""
-🔎 ANALISI STRATEGICA KDP
+🔎 ANALISI STRATEGICA AVANZATA
 
 📌 Keyword: {kw}
-🎯 Tipo: {ktype}
 📊 SEO Score: {score}/100
-
-🎯 Angolo Consigliato:
-{random.choice(angles)}
-
-💡 Long Tail Strategiche:
-- {kw} guida pratica completa
-- come {kw} senza errori
-- {kw} per principianti passo dopo passo
+📈 Domanda Stimata: {demand}
+🧠 Intento Ricerca: {intent}
+📉 Saturazione Mercato: {saturation}
+🎯 Categoria KDP Suggerita:
+{category}
 """
 
     bot.reply_to(message, response)
 
-@bot.message_handler(commands=['titolo'])
-def titolo(message):
-    topic = message.text.replace("/titolo", "").strip()
-
+@bot.message_handler(commands=['idea'])
+def idea(message):
+    topic = message.text.replace("/idea", "").strip()
     if not topic:
         bot.reply_to(message, "Inserisci un argomento.")
         return
 
-    normal_titles = []
-    for _ in range(2):
-        title = f"{topic.title()} - {random.choice(power_words)}"
-        subtitle = f"{random.choice(mechanisms)} {random.choice(time_frames)}"
-        normal_titles.append(f"📘 {title}\n {subtitle}")
+    structure = f"""
+🛠 IDEA LIBRO COMPLETA
 
-    aggressive = f"🔥 {topic.title()} – {random.choice(mechanisms)} {random.choice(time_frames)} Anche se Parti da Zero"
+📘 Titolo:
+{topic.title()} – Guida Pratica per Principianti
 
-    ultra_niche = f"🎯 {topic.title()} per Principianti Assoluti – Manuale Pratico da Garage con Budget Ridotto"
+📚 Struttura Capitoli:
+1. Introduzione e errori comuni
+2. Strumenti necessari
+3. Metodo passo dopo passo
+4. Problemi frequenti e soluzioni
+5. Tecniche avanzate
+6. Manutenzione e ottimizzazione
 
-    response = "🏆 KDP PRO TITOLI\n\n"
-    response += "\n\n".join(normal_titles)
-    response += "\n\n"
-    response += aggressive
-    response += "\n\n"
-    response += ultra_niche
+🎯 Target:
+Appassionati e principianti che vogliono risultati pratici.
+"""
 
-    bot.reply_to(message, response)
+    bot.reply_to(message, structure)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
