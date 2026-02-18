@@ -10,63 +10,57 @@ app = Flask(__name__)
 def seo_score(keyword):
     score = 40
     words = len(keyword.split())
-
     if words >= 4:
         score += 20
     if any(char.isdigit() for char in keyword):
         score += 15
     if "guida" in keyword.lower():
         score += 10
-
     return min(score, 100)
 
-def demand_indicator(score):
-    if score >= 75:
-        return "Alta (Verticale Specifica)"
+def market_profile(score, words):
+    if score >= 75 and words >= 4:
+        return "Micro-Nicchia Verticale"
     if score >= 60:
-        return "Media Interessante"
-    return "Generica Competitiva"
+        return "Nicchia Intermedia"
+    return "Mercato Ampio Competitivo"
 
-def search_intent(keyword):
-    kw = keyword.lower()
-    if "come" in kw or "guida" in kw:
-        return "Tutorial / Problema"
-    if any(char.isdigit() for char in kw):
-        return "Passione Specifica"
-    return "Commerciale Generico"
+def positioning_strategy(profile):
+    if "Micro" in profile:
+        return "Dominio specifico + Autorità tecnica"
+    if "Intermedia" in profile:
+        return "Differenziazione forte + Metodo proprietario"
+    return "Brand personale + Volume alto"
 
-def market_saturation(keyword):
-    words = len(keyword.split())
-    if words >= 4:
-        return "Bassa (Opportunità)"
-    if words == 3:
+def authority_level(profile):
+    if "Micro" in profile:
+        return "Media/Alta (esperienza reale consigliata)"
+    if "Intermedia" in profile:
         return "Media"
-    return "Alta"
+    return "Base / divulgativo"
 
-def commercial_value(score, saturation):
-    if score >= 75 and "Bassa" in saturation:
-        return "Ottimo potenziale Micro-Nicchia"
-    if score >= 60:
-        return "Buon potenziale ma competitivo"
-    return "Serve differenziazione forte"
+def cover_type(profile):
+    if "Micro" in profile:
+        return "Copertina tecnica, concreta, professionale"
+    return "Copertina emozionale / promessa forte"
 
-def price_suggestion(score):
-    if score >= 75:
-        return "Prezzo consigliato: 14.99€ - 19.99€"
-    if score >= 60:
-        return "Prezzo consigliato: 12.99€ - 14.99€"
-    return "Prezzo consigliato: 9.99€ - 12.99€"
+def funnel_strategy(profile):
+    if "Micro" in profile:
+        return "Checklist + Gruppo Telegram + Versione avanzata"
+    if "Intermedia" in profile:
+        return "Mini ebook bonus + Newsletter"
+    return "Lead magnet generico"
 
-def pages_suggestion(score):
-    if score >= 75:
-        return "Lunghezza consigliata: 120-180 pagine"
-    if score >= 60:
-        return "Lunghezza consigliata: 90-130 pagine"
-    return "Lunghezza consigliata: 70-100 pagine"
+def operational_risk(words):
+    if words >= 4:
+        return "Basso rischio (target chiaro)"
+    if words == 3:
+        return "Rischio medio"
+    return "Alto rischio saturazione"
 
 @app.route('/')
 def home():
-    return "KDP RADAR Online"
+    return "KDP Intelligent Strategist Online"
 
 @app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
@@ -78,53 +72,56 @@ def webhook():
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.reply_to(message,
-        "🚀 KDP RADAR COMPLETO ATTIVO\n\n"
-        "Scrivi semplicemente una keyword dopo /radar\n"
-        "Esempio:\n"
-        "/radar restauro fiat uno 1990"
+        "🚀 KDP INTELLIGENT STRATEGIST\n\n"
+        "Scrivi:\n"
+        "/analyze tua keyword"
     )
 
-@bot.message_handler(commands=['radar'])
-def radar(message):
-    kw = message.text.replace("/radar", "").strip()
+@bot.message_handler(commands=['analyze'])
+def analyze(message):
+    kw = message.text.replace("/analyze", "").strip()
+
     if not kw:
-        bot.reply_to(message, "Inserisci una keyword dopo /radar")
+        bot.reply_to(message, "Inserisci una keyword dopo /analyze")
         return
 
     score = seo_score(kw)
-    demand = demand_indicator(score)
-    intent = search_intent(kw)
-    saturation = market_saturation(kw)
-    commercial = commercial_value(score, saturation)
-    price = price_suggestion(score)
-    pages = pages_suggestion(score)
-
-    collection_strategy = f"""
-📚 Strategia Collana:
-
-1. Libro Base: {kw.title()} – Guida Completa
-2. Versione Budget / Principianti
-3. Versione Avanzata Tecnica
-4. Manuale Illustrato
-5. Workbook / Checklist Operativa
-"""
+    words = len(kw.split())
+    profile = market_profile(score, words)
+    positioning = positioning_strategy(profile)
+    authority = authority_level(profile)
+    cover = cover_type(profile)
+    funnel = funnel_strategy(profile)
+    risk = operational_risk(words)
 
     response = f"""
-🔎 KDP RADAR ANALYSIS
+🧠 ANALISI STRATEGICA AVANZATA
 
 📌 Keyword: {kw}
 📊 SEO Score: {score}/100
-📈 Domanda: {demand}
-🧠 Intento: {intent}
-📉 Saturazione: {saturation}
+🎯 Profilo Mercato: {profile}
 
-💰 Valore Commerciale:
-{commercial}
+🚀 Posizionamento Consigliato:
+{positioning}
 
-🏷 {price}
-📖 {pages}
+🎓 Livello Autorità Necessario:
+{authority}
 
-{collection_strategy}
+🎨 Tipo Copertina:
+{cover}
+
+📦 Strategia Funnel:
+{funnel}
+
+⚠️ Rischio Operativo:
+{risk}
+
+📚 Espansione Consigliata:
+1. Libro Base
+2. Versione Specializzata
+3. Workbook operativo
+4. Edizione Illustrata
+5. Upsell avanzato
 """
 
     bot.reply_to(message, response)
